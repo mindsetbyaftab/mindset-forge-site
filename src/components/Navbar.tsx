@@ -19,7 +19,7 @@ const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
         <Link to="/" className="font-display text-xl font-bold tracking-tight">
-          Mindset <span className="text-gold">By Aftab</span>
+          
         </Link>
 
         {/* Desktop nav */}
