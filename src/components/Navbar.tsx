@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import logo from "@/assets/logo.jpg";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -18,8 +19,8 @@ const Navbar = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto flex items-center justify-between h-16 px-4">
-        <Link to="/" className="font-display text-xl font-bold tracking-tight">
-          
+        <Link to="/" className="flex items-center">
+          <img src={logo} alt="Mindset By Aftab" className="h-10 w-auto" />
         </Link>
 
         {/* Desktop nav */}
