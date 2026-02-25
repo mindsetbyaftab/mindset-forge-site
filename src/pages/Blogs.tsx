@@ -1,16 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
-import { blogPosts, categories } from "@/data/blogPosts";
+import { supabase } from "@/integrations/supabase/client";
+import type { BlogPost } from "@/data/blogPosts";
 
 const Blogs = () => {
   const [activeCategory, setActiveCategory] = useState("All");
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      const { data } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("published", true)
+        .order("date", { ascending: false });
+
+      if (data) {
+        const mapped: BlogPost[] = data.map((p: any) => ({
+          slug: p.slug,
+          title: p.title,
+          date: p.date,
+          category: p.category,
+          image: p.image_url || "/placeholder.svg",
+          description: p.description,
+          popular: p.popular,
+          content: p.content,
+        }));
+        setPosts(mapped);
+        setCategories([...new Set(mapped.map((p) => p.category))]);
+      }
+      setLoading(false);
+    };
+    fetchPosts();
+  }, []);
 
   const filtered =
     activeCategory === "All"
-      ? blogPosts
-      : blogPosts.filter((p) => p.category === activeCategory);
+      ? posts
+      : posts.filter((p) => p.category === activeCategory);
 
   return (
     <Layout>
@@ -41,13 +72,17 @@ const Blogs = () => {
           ))}
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {filtered.map((post, i) => (
-            <BlogCard key={post.slug} post={post} index={i} />
-          ))}
-        </div>
+        {loading ? (
+          <p className="text-center text-muted-foreground font-body">Loading posts...</p>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-8">
+            {filtered.map((post, i) => (
+              <BlogCard key={post.slug} post={post} index={i} />
+            ))}
+          </div>
+        )}
 
-        {filtered.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <p className="text-center text-muted-foreground font-body mt-8">
             No posts found in this category.
           </p>

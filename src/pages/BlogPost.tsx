@@ -1,13 +1,37 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
-import { blogPosts } from "@/data/blogPosts";
+import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+
+interface Post {
+  slug: string;
+  title: string;
+  date: string;
+  category: string;
+  image_url: string | null;
+  content: string;
+}
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
-  const post = blogPosts.find((p) => p.slug === slug);
+  const [post, setPost] = useState<Post | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      const { data } = await supabase
+        .from("blog_posts")
+        .select("slug, title, date, category, image_url, content")
+        .eq("slug", slug)
+        .eq("published", true)
+        .single();
+      setPost(data);
+      setLoading(false);
+    };
+    fetchPost();
+  }, [slug]);
 
   const toc = useMemo(() => {
     if (!post) return [];
@@ -19,6 +43,16 @@ const BlogPost = () => {
     }
     return matches;
   }, [post]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-32 text-center">
+          <p className="text-muted-foreground font-body">Loading...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   if (!post) {
     return (
@@ -51,11 +85,7 @@ const BlogPost = () => {
         const text = line.replace("## ", "");
         const id = text.toLowerCase().replace(/\s+/g, "-");
         elements.push(
-          <h2
-            key={i}
-            id={id}
-            className="font-display text-2xl font-bold mt-10 mb-4 text-gold"
-          >
+          <h2 key={i} id={id} className="font-display text-2xl font-bold mt-10 mb-4 text-gold">
             {text}
           </h2>
         );
@@ -74,7 +104,7 @@ const BlogPost = () => {
         );
         continue;
       } else if (line.trim() === "") {
-        // skip empty lines
+        // skip
       } else {
         elements.push(
           <p key={i} className="font-body text-muted-foreground leading-relaxed mb-4">
@@ -87,23 +117,16 @@ const BlogPost = () => {
     return elements;
   };
 
+  const imageUrl = post.image_url || "/placeholder.svg";
+
   return (
     <Layout>
-      {/* Hero image */}
       <div className="relative h-[50vh] overflow-hidden">
-        <img
-          src={post.image}
-          alt={post.title}
-          className="w-full h-full object-cover"
-        />
+        <img src={imageUrl} alt={post.title} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-foreground/50" />
         <div className="absolute inset-0 flex items-end">
           <div className="container mx-auto px-4 pb-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <span className="text-xs font-body font-semibold uppercase tracking-wider text-gold">
                 {post.category}
               </span>
@@ -111,11 +134,7 @@ const BlogPost = () => {
                 {post.title}
               </h1>
               <p className="text-background/70 font-body mt-3">
-                {new Date(post.date).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
+                {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
               </p>
             </motion.div>
           </div>
@@ -123,20 +142,12 @@ const BlogPost = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12">
-        <Link
-          to="/blogs"
-          className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-gold transition-colors mb-8"
-        >
+        <Link to="/blogs" className="inline-flex items-center gap-2 text-sm font-body text-muted-foreground hover:text-gold transition-colors mb-8">
           <ArrowLeft size={16} /> Back to Blogs
         </Link>
 
         <div className="grid lg:grid-cols-[1fr_280px] gap-12 max-w-5xl">
-          {/* Content */}
-          <article className="max-w-none">
-            {renderContent(post.content)}
-          </article>
-
-          {/* Sidebar TOC */}
+          <article className="max-w-none">{renderContent(post.content)}</article>
           {toc.length > 0 && (
             <aside className="hidden lg:block">
               <div className="sticky top-24 p-6 bg-surface-warm rounded-xl">
@@ -146,10 +157,7 @@ const BlogPost = () => {
                 <ul className="space-y-2">
                   {toc.map((heading) => (
                     <li key={heading}>
-                      <a
-                        href={`#${heading.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="text-sm font-body text-muted-foreground hover:text-gold transition-colors"
-                      >
+                      <a href={`#${heading.toLowerCase().replace(/\s+/g, "-")}`} className="text-sm font-body text-muted-foreground hover:text-gold transition-colors">
                         {heading}
                       </a>
                     </li>
