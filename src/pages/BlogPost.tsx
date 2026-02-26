@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
+import { getBlogImage } from "@/data/blogImages";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -117,7 +118,7 @@ const BlogPost = () => {
     return elements;
   };
 
-  const imageUrl = post.image_url || "/placeholder.svg";
+  const imageUrl = getBlogImage(post.slug, post.image_url);
 
   return (
     <Layout>
