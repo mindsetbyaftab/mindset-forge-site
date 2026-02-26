@@ -10,6 +10,7 @@ import heroBg from "@/assets/hero-bg.jpg";
 import aboutImg from "@/assets/about-portrait.jpg";
 import { ArrowRight, Mail } from "lucide-react";
 import type { BlogPost } from "@/data/blogPosts";
+import { getBlogImage } from "@/data/blogImages";
 
 const Index = () => {
   const [latestPosts, setLatestPosts] = useState<BlogPost[]>([]);
@@ -38,7 +39,7 @@ const Index = () => {
         title: p.title,
         date: p.date,
         category: p.category,
-        image: p.image_url || "/placeholder.svg",
+        image: getBlogImage(p.slug, p.image_url),
         description: p.description,
         popular: p.popular,
         content: p.content,

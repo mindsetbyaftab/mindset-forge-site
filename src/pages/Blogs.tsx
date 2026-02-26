@@ -3,6 +3,7 @@ import Layout from "@/components/Layout";
 import SectionWrapper from "@/components/SectionWrapper";
 import BlogCard from "@/components/BlogCard";
 import { supabase } from "@/integrations/supabase/client";
+import { getBlogImage } from "@/data/blogImages";
 import type { BlogPost } from "@/data/blogPosts";
 
 const Blogs = () => {
@@ -25,7 +26,7 @@ const Blogs = () => {
           title: p.title,
           date: p.date,
           category: p.category,
-          image: p.image_url || "/placeholder.svg",
+          image: getBlogImage(p.slug, p.image_url),
           description: p.description,
           popular: p.popular,
           content: p.content,
